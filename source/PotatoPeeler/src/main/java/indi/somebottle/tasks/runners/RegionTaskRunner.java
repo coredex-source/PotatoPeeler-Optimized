@@ -33,17 +33,17 @@ public interface RegionTaskRunner extends Runnable {
         for (Chunk chunk : existingChunks) {
             if (chunk.isOverSized()) {
                 // 如果区块数据较多，就不进行删除
-                GlobalLogger.fine("Chunk at (" + chunk.getGlobalX() + "," + chunk.getGlobalZ() + ") in " + mcaFileName + " is oversize, ignored.");
+                GlobalLogger.fine(String.format("Chunk at (%d,%d) in %s is oversize, ignored.", chunk.getGlobalX(), chunk.getGlobalZ(), mcaFileName));
                 continue;
             }
             if (params.protectedChunksIndex.contains(chunk.getGlobalX(), chunk.getGlobalZ())) {
                 // 如果区块在保护范围内，就不进行删除
-                GlobalLogger.fine("Chunk at (" + chunk.getGlobalX() + "," + chunk.getGlobalZ() + ") in " + mcaFileName + " is protected, ignored.");
+                GlobalLogger.fine(String.format("Chunk at (%d,%d) in %s is protected, ignored.", chunk.getGlobalX(), chunk.getGlobalZ(), mcaFileName));
                 continue;
             }
             if (chunk.getInhabitedTime() <= params.minInhabited) {
                 // 如果区块的 inhabitedTime 小于等于阈值，就将其标记为待删除
-                GlobalLogger.fine("Marked the chunk at (" + chunk.getGlobalX() + "," + chunk.getGlobalZ() + ") in " + mcaFileName + " for removal.");
+                GlobalLogger.fine(String.format("Marked the chunk at (%d,%d) in %s for removal.", chunk.getGlobalX(), chunk.getGlobalZ(), mcaFileName));
                 chunk.setDeleteFlag(true);
                 chunksToBeRemoved++;
             }

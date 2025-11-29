@@ -125,6 +125,16 @@ public class InPlaceRegionTaskRunner implements RegionTaskRunner {
                     GlobalLogger.warning("Failed to backup(rename) file:" + mcaFile.getAbsolutePath(), e);
                     continue;
                 }
+                // 验证备份文件大小与原始文件一致
+                if (backupFile.length() != originalLength) {
+                    GlobalLogger.warning("Backup file size mismatch for: " + backupFile.getAbsolutePath() + " (expected: " + originalLength + ", actual: " + backupFile.length() + "), restoring...");
+                    try {
+                        Files.move(backupMCAPath, originalMCAPath);
+                    } catch (IOException ex) {
+                        GlobalLogger.severe("Failed to restore backup file: " + backupMCAPath, ex);
+                    }
+                    continue;
+                }
                 // 把修改后的区域写回原 mcaFile
                 try {
                     // 注意，到这里时原 .mca 文件已经被重命名了 .mca.bak

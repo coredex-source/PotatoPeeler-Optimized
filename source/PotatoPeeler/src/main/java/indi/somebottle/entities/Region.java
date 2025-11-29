@@ -23,7 +23,7 @@ public class Region {
     /**
      * 存储非 null 的 Chunk 对象
      */
-    private final List<Chunk> existingChunks = new ArrayList<>();
+    private final List<Chunk> existingChunks = new ArrayList<>(1024); // Remove the 1024 if it starts going crazy
 
 
     public Region(File regionFile) throws RegionPosNotFoundException {

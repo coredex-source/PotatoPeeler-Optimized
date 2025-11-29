@@ -81,9 +81,10 @@ public class Potato {
         RegionTaskDispatcher dispatcher = new RegionTaskDispatcher(threadsNum, params);
         // 把文件提交给任务调度器
         for (File mcaFile : mcaFiles) {
-            if (!mcaFile.canRead() || !mcaFile.canWrite()) {
-                // 如果没有读写权限，跳过
-                GlobalLogger.warning("File " + mcaFile.getAbsolutePath() + " can not be read or written, skipped.");
+            // 只检查可读性，可写性会在实际写入时检查（避免重复的系统调用）
+            if (!mcaFile.canRead()) {
+                // 如果没有读权限，跳过
+                GlobalLogger.warning("File " + mcaFile.getAbsolutePath() + " can not be read, skipped.");
                 continue;
             }
             dispatcher.addTask(mcaFile);

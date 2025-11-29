@@ -133,7 +133,7 @@ public class ChunkUtils {
         String line;
         try (
                 FileReader fr = new FileReader(listFile);
-                BufferedReader br = new BufferedReader(fr)
+                BufferedReader br = new BufferedReader(fr, 16384)
         ) {
             while ((line = br.readLine()) != null) {
                 lineCnt++;
@@ -187,11 +187,11 @@ public class ChunkUtils {
         byte[] decompressedData;
         try (
                 FileInputStream fis = new FileInputStream(chunksDatFile);
-                BufferedInputStream bis = new BufferedInputStream(fis);
+                BufferedInputStream bis = new BufferedInputStream(fis, 65536);
                 GZIPInputStream gzis = new GZIPInputStream(bis);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream()
         ) {
-            byte[] decompressBuf = new byte[1024];
+            byte[] decompressBuf = new byte[8192];
             int bytesRead;
             while ((bytesRead = gzis.read(decompressBuf)) != -1) {
                 baos.write(decompressBuf, 0, bytesRead);

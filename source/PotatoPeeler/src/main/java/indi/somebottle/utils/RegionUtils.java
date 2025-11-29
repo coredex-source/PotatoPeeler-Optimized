@@ -80,7 +80,7 @@ public class RegionUtils {
         // regionStream 用于读取 .mca 文件头部元数据
         // chunkReader 用于读取区块数据
         try (
-                BufferedInputStream regionStream = new BufferedInputStream(new FileInputStream(regionFile));
+                BufferedInputStream regionStream = new BufferedInputStream(new FileInputStream(regionFile), 65536);
                 RandomAccessFile chunkReader = new RandomAccessFile(regionFile, "r")
         ) {
             // 参考文档：https://zh.minecraft.wiki/w/%E5%8C%BA%E5%9F%9F%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F
@@ -170,12 +170,12 @@ public class RegionUtils {
         long bytesWrite;
         try (
                 OutputStream os = dryRun ? new NullOutputStream() : new FileOutputStream(outputFile);
-                BufferedOutputStream bos = new BufferedOutputStream(os);
+                BufferedOutputStream bos = new BufferedOutputStream(os, 65536);
                 ByteCountingOutputStream cfos = new ByteCountingOutputStream(bos);
                 RandomAccessFile chunkReader = new RandomAccessFile(sourceFile, "r")
         ) {
             // 缓冲区
-            byte[] dataBuf = new byte[4096];
+            byte[] dataBuf = new byte[65536];
             Chunk chunkTmp;
             // 写入区块偏移和长度表
             // 记录当前区块起始位置在 mca 文件中的偏移扇区数
@@ -237,9 +237,11 @@ public class RegionUtils {
                 while (bytesRemaining > 0) {
                     // 读取的字节数
                     int bytesToRead = (int) Math.min(bytesRemaining, dataBuf.length);
-                    // 读取区块数据
-                    if (chunkReader.read(dataBuf, 0, bytesToRead) != bytesToRead) {
-                        throw new RegionFormatException("MCA File format error in " + sourceFile.getName() + ", unable to copy chunk data, no enough bytes.");
+                    // 读取区块数据 - 使用 readFully 确保读取完整的数据
+                    try {
+                        chunkReader.readFully(dataBuf, 0, bytesToRead);
+                    } catch (EOFException e) {
+                        throw new RegionFormatException("MCA File format error in " + sourceFile.getName() + ", unable to copy chunk data, unexpected end of file at offset " + chunkReader.getFilePointer() + ", expected " + bytesToRead + " more bytes.");
                     }
                     // 写入到输出文件
                     cfos.write(dataBuf, 0, bytesToRead);
