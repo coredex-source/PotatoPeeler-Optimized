@@ -77,6 +77,8 @@ public class RegionUtils {
     public static Region readRegion(File regionFile) throws RegionPosNotFoundException, IOException, RegionFormatException, RegionChunkInitializedException {
         Region region = new Region(regionFile);
         GlobalLogger.fine("Reading region file: " + regionFile.getAbsolutePath());
+        // Get file size for validating chunk data integrity later
+        long fileSize = regionFile.length();
         // regionStream 用于读取 .mca 文件头部元数据
         // chunkReader 用于读取区块数据
         try (
@@ -119,6 +121,12 @@ public class RegionUtils {
                     // 如果以上两个字段均为 0，说明此区块不存在
                     if (chunkOffset == 0 && sectorsOccupied == 0) {
                         continue;
+                    }
+                    // Validate file size can hold this chunk's data
+                    // This detects truncated/corrupted files early, avoiding expensive backup-restore cycles
+                    long chunkEndOffset = chunkOffset + (long) sectorsOccupied * REGION_FILE_SECTOR_SIZE;
+                    if (chunkEndOffset > fileSize) {
+                        throw new RegionFormatException("MCA File truncated: " + regionFile.getName() + ", chunk at (" + x + ", " + z + ") requires data up to offset " + chunkEndOffset + " but file size is only " + fileSize + " bytes.");
                     }
                     // 继续读取区块
                     try {
